@@ -28,19 +28,18 @@ function processSection(sectionName, hexValue) {
     const binaryValue = parseInt(hexValue, 16).toString(2).padStart(8, '0');
     let results = {};
 
-    results.byte = data[sectionName].byte; // Include byte in the output
     for (const [key, value] of Object.entries(data[sectionName])) {
-        if (key !== "byte") { // Skip byte key as it's already added
+        if (key !== "byte") { // Skip byte key
             const bitPosition = value.bit;
             // Assign the corresponding bit value (0 or 1)
             results[key] = binaryValue[7 - bitPosition] === '1' ? 1 : 0;
         }
     }
 
-    // Format output as requested
+    // Format output as requested with new lines
     const formattedOutput = Object.entries(results)
         .map(([key, value]) => `${key}: ${value}`)
-        .join(', ');
+        .join(', \n');
 
     return formattedOutput;
 }
@@ -49,6 +48,6 @@ function processSection(sectionName, hexValue) {
 const mattenOutput = processSection("Mattenkonfiguration", "6F");
 const sensorOutput = processSection("Sensorkonfiguration", "0F");
 
-// Print results
-console.log("Mattenkonfiguration Output:", mattenOutput);
-console.log("Sensorkonfiguration Output:", sensorOutput);
+// Print results on new lines
+console.log(mattenOutput);
+console.log(sensorOutput);
