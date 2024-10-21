@@ -44,39 +44,43 @@ function processSection(sectionName, hexValue) {
     const binaryValue = parseInt(hexValue, 16).toString(2).padStart(8, '0');
     let results = [];
 
+    // Process all bits except for Innentemp_Steuerung and Temperaturklassen_en
     for (const [key, value] of Object.entries(data[sectionName])) {
         if (key !== "byte") { // Skip byte key
-            if (Array.isArray(value.bit)) {
-                // Process each bit in the array and add to results
-                value.bit.forEach(bitPosition => {
+            if(sectionName !== "SHz Variantenkodierung 4"){
+                 if (Array.isArray(value.bit)) {
+                    // Process each bit in the array and add to results
+                    value.bit.forEach(bitPosition => {
+                        const bitValue = binaryValue[7 - bitPosition] === '1' ? 1 : 0;
+                        results.push(`3${key}: ${bitValue}`);
+                    });
+                } else {
+                    const bitPosition = value.bit;
+                    // Assign the corresponding bit value (0 or 1)
                     const bitValue = binaryValue[7 - bitPosition] === '1' ? 1 : 0;
                     results.push(`${key}: ${bitValue}`);
-                });
-            } else {
-                const bitPosition = value.bit;
-                // Assign the corresponding bit value (0 or 1)
-                const bitValue = binaryValue[7 - bitPosition] === '1' ? 1 : 0;
-                results.push(`${key}: ${bitValue}`);
+                }
             }
+           
         }
     }
 
-    // Additional logic for byte 3
+    // Special output format for byte 3
     if (sectionName === "SHz Variantenkodierung 4") {
-        // Loop through bits 0 to 2 for Regelung_SSIH_Kreis
+        // Capture Regelung_SSIH_Kreis for bits 0 to 2
         for (let i = 0; i <= 2; i++) {
             const bitValue = binaryValue[7 - i] === '1' ? 1 : 0;
             results.push(`Regelung_SSIH_Kreis: ${bitValue}`);
         }
 
-        // Loop through bits 3 to 5 for Regelung_SIH_Kreis
+        // Capture Regelung_SIH_Kreis for bits 3 to 5
         for (let i = 3; i <= 5; i++) {
             const bitValue = binaryValue[7 - i] === '1' ? 1 : 0;
             results.push(`Regelung_SIH_Kreis: ${bitValue}`);
         }
 
-        // Capture the values for Innentemp_Steuerung and Temperaturklassen_en only once
-    const innentempValue = binaryValue[7 - 6] === '1' ? 1 : 0;
+        // Capture values for Innentemp_Steuerung and Temperaturklassen_en only once
+        const innentempValue = binaryValue[7 - 6] === '1' ? 1 : 0;
         const temperaturklassenValue = binaryValue[7 - 7] === '1' ? 1 : 0;
 
         // Push values only once at the end
