@@ -1,0 +1,50 @@
+{
+    "Mattenkonfiguration": {
+        "byte": 0,
+        "LeSp_verbaut_en": {
+            "bit": 0
+        },
+        "KiSp_verbaut_en": {
+            "bit": 1
+        },
+        "LeWa_verbaut_en": {
+            "bit": 2
+        },
+        "KiWa_verbaut_en": {
+            "bit": 3
+        },
+        "KK_verbaut_en": {
+            "bit": 4
+        },
+        "Balance_Avl": {
+            "bit": 5
+        },
+        "SSIH_Avl": {
+            "bit": 6
+        },
+        "Reserviert": {
+            "bit": 7
+        }
+    },
+    "Sensorkonfiguration": {
+        "byte": 1,
+        "SensorKi5p_verbaut": {
+            "bit": 0
+        },
+        "SensorLeSp_verbaut": {
+            "bit": 1
+        },
+        "SensorKiWa_verbaut": {
+            "bit": 2
+        },
+        "SensorLeWa_verbaut": {
+            "bit": 3
+        },
+        "SensorKK_verbaut": {
+            "bit": 4
+        },
+        "Reserviert": {
+            "bit": [5,6,7]
+        }
+    }
+}

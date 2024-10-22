@@ -24,6 +24,7 @@
             reader.onload = (event) => {
                 const csvData = event.target.result;
                 const jsonData = csvToJson(csvData);
+                console.log(jsonData); // Debugging output
                 downloadJson(jsonData);
             };
 
@@ -31,27 +32,32 @@
         });
 
         function csvToJson(csv) {
-            const lines = csv.split('\n');
+            const lines = csv.trim().split('\n');
             const result = {};
-            const headers = lines[0].split(',');
+            let currentSection = '';
 
             for (let i = 1; i < lines.length; i++) {
                 const currentLine = lines[i].split(',');
+                
+                if (currentLine.length < 4) continue; // Ensure there are enough columns
 
-                if (currentLine.length > 1) { // Ensure there is data
-                    const sectionName = currentLine[0].trim();
-                    const byteValue = i - 1; // Assume the line number minus header is the byte value
-                    result[sectionName] = { byte: byteValue };
+                const name = currentLine[1]?.trim();
+                const byteValue = currentLine[2]?.trim() !== '' ? parseInt(currentLine[2].trim(), 10) : null;
+                const bitValue = currentLine[3]?.trim() !== '' ? parseInt(currentLine[3].trim(), 10) : null;
 
-                    for (let j = 1; j < headers.length; j++) {
-                        const key = headers[j].trim();
-                        const bitValue = j - 1; // Assuming bit values start from 0
-                        result[sectionName][key] = { bit: bitValue };
-                    }
+                // If it's a new section (like "Mattenkonfiguration")
+                if (name && byteValue !== null) {
+                    result[name] = { byte: byteValue }; // Assign byte value
+                    currentSection = name; // Set current section
+                } 
+                // If the line contains a name and belongs to the current section
+                else if (name && currentSection) {
+                    const sectionData = result[currentSection];
+                    sectionData[name] = { bit: bitValue !== null ? bitValue : 0 }; // Assign bit value
                 }
             }
 
-            return result;
+            return result; // Return the result object without "data"
         }
 
         function downloadJson(jsonData) {
@@ -69,9 +75,3 @@
 </body>
 </html>
 
-
-Section,LeSp_verbaut_en,KiSp_verbaut_en,LeWa_verbaut_en,KiWa_verbaut_en,KK_verbaut_en,Balance_Avl,SSIH_Avl,Reserviert
-Mattenkonfiguration,0,1,0,1,0,1,1,1
-Sensorkonfiguration,1,0,1,0,1,0,1,0
-SHz Variantenkodierung 3,0,1,0,1,0,1,1,1
-SHz Variantenkodierung 4,1,0,0,1,0,1,1,1
