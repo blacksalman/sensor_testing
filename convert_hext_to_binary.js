@@ -1,4 +1,3 @@
-const readline = require('readline');
 const fs = require('fs');
 
 // Read the JSON file
@@ -37,30 +36,29 @@ function processSection(sectionName, hexValue) {
     return results.join(', \n');
 }
 
-// Setup readline for user input
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
+// Key-value pair of byte values and their corresponding hex values
+const byteHexMap = {
+    0: '6F',
+    1: '0F',
+    2: '6F',
+    3: 'DB',
+    4: '2F',
+    5: '41',
+    6: '01',
+    7: '0F',
+    8: '00',
+    9: '00'
+};
+
+// Loop through the byteHexMap and process each pair
+Object.entries(byteHexMap).forEach(([byteValue, hexValue]) => {
+    // Find the section corresponding to the byte value
+    const sectionName = Object.keys(data).find(key => data[key].byte === parseInt(byteValue));
+
+    if (sectionName) {
+        const output = processSection(sectionName, hexValue);
+        console.log(`Byte ${byteValue} (Hex ${hexValue}): \n${output}\n`);
+    } else {
+        console.log(`No section found for the provided byte value ${byteValue} (Hex ${hexValue}).\n`);
+    }
 });
-
-// Get user input for hexadecimal value and byte
-rl.question("Enter a hexadecimal value (e.g., 6F): ", (hexValue) => {
-    rl.question("Enter a byte value (e.g., 3): ", (byteInput) => {
-        const byteValue = parseInt(byteInput, 10);
-
-        // Find the section corresponding to the byte value
-        const sectionName = Object.keys(data).find(key => data[key].byte === byteValue);
-
-        if (sectionName) {
-            const output = processSection(sectionName, hexValue);
-            console.log(output);
-        } else {
-            console.log("No section found for the provided byte value.");
-        }
-
-        rl.close();
-    });
-});
-
-
-
