@@ -1,64 +1,74 @@
 const fs = require('fs');
 
-// Read the JSON file
+// Read the JSON files
 let data;
+let hexData;
 try {
-    const jsonData = fs.readFileSync('data.json', 'utf8');
+    const jsonData = fs.readFileSync('data1.json', 'utf8');
     data = JSON.parse(jsonData);
+
+    const hexDataJson = fs.readFileSync('hex_value_formated_data1.json', 'utf8');
+    hexData = JSON.parse(hexDataJson);
 } catch (err) {
-    console.error("Error reading or parsing data.json:", err);
+    console.error("Error reading or parsing the JSON files:", err);
     process.exit(1);
 }
 
 // Function to process a given section with its hex value
 function processSection(sectionName, hexValue) {
+    // Convert hex to binary string (pad to 8 bits)
     const binaryValue = parseInt(hexValue, 16).toString(2).padStart(8, '0');
     let results = [];
 
     // Process all bits in the section
-    for (const [key, value] of Object.entries(data[sectionName])) {
-        if (key !== "byte") { // Skip byte key
-            if (Array.isArray(value.bit)) {
-                // Process each bit in the array
-                value.bit.forEach(bitPosition => {
-                    const bitValue = binaryValue[7 - bitPosition] === '1' ? 1 : 0;
-                    results.push(`${key}: ${bitValue}`);
-                });
-            } else {
-                const bitPosition = value.bit;
-                // Assign the corresponding bit value (0 or 1)
-                const bitValue = binaryValue[7 - bitPosition] === '1' ? 1 : 0;
-                results.push(`${key}: ${bitValue}`);
+    for (const [key, value] of Object.entries(data[sectionName].Mattenkonfiguration)) {
+        if (key !== "byte") { // Skip the "byte" key
+            const bitPosition = value.bit;
+
+            // Ensure the binary value has enough bits (padding added for safety)
+            if (binaryValue.length < 8) {
+                console.error(`Binary value for ${hexValue} is less than 8 bits: ${binaryValue}`);
+                continue;
             }
+
+            // Assign the corresponding bit value (0 or 1)
+            const bitValue = binaryValue[7 - bitPosition] === '1' ? 1 : 0;  // reverse indexing to match bit position
+
+            // Push the result
+            results.push(`${key}: ${bitValue}`);
         }
     }
 
     return results.join(', \n');
 }
 
-// Key-value pair of byte values and their corresponding hex values
-const byteHexMap = {
-    0: '6F',
-    1: '0F',
-    2: '6F',
-    3: 'DB',
-    4: '2F',
-    5: '41',
-    6: '01',
-    7: '0F',
-    8: '00',
-    9: '00'
-};
+// Iterate through the hex_data to find matching section
+Object.entries(hexData).forEach(([hexSectionName, byteHexMap]) => {
+    // We need to check if the section name in data.json (e.g., SHZ_Variantencodierung_Max) exists as part of the key in hex_value_formated_data.json (e.g., SHZ_Variantencodierung_Max_Read_Dump)
+    
+    // Extract the base name from hexSectionName (e.g., "SHZ_Variantencodierung_Max_Read_Dump" becomes "SHZ_Variantencodierung_Max")
+    const baseSectionName = hexSectionName.replace('_Read_Dump', '');
 
-// Loop through the byteHexMap and process each pair
-Object.entries(byteHexMap).forEach(([byteValue, hexValue]) => {
-    // Find the section corresponding to the byte value
-    const sectionName = Object.keys(data).find(key => data[key].byte === parseInt(byteValue));
+    // Check if the baseSectionName exists in data.json
+    if (data[baseSectionName]) {
+        console.log(`Processing section: ${baseSectionName}`);
 
-    if (sectionName) {
-        const output = processSection(sectionName, hexValue);
-        console.log(`Byte ${byteValue} (Hex ${hexValue}): \n${output}\n`);
+        // Now filter out only those sections where the "byte" value is 0
+        if (data[baseSectionName].Mattenkonfiguration.byte === 0) {
+            console.log('data[sectionName]', data[baseSectionName]);
+
+            // Process each byte and its corresponding hex value from hex_value_formated_data.json
+            Object.entries(byteHexMap).forEach(([byteValue, hexValue]) => {
+                if (parseInt(byteValue) === 0) {  // Only process byte 0
+                    const sectionName = baseSectionName;
+                    const output = processSection(sectionName, hexValue);
+                    console.log(`Byte ${byteValue} (Hex ${hexValue}): \n${output}\n`);
+                }
+            });
+        } else {
+            console.log(`Skipping section ${baseSectionName} because it's not byte 0.`);
+        }
     } else {
-        console.log(`No section found for the provided byte value ${byteValue} (Hex ${hexValue}).\n`);
+        console.log(`No matching section found in data.json for ${baseSectionName}.`);
     }
 });

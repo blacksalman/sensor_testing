@@ -35,6 +35,7 @@
             const lines = csv.trim().split('\n');
             const result = {};
             let currentSection = '';
+            let dynamicKey = '';
 
             for (let i = 1; i < lines.length; i++) {
                 const currentLine = lines[i].split(',');
@@ -44,6 +45,11 @@
                 const name = currentLine[1]?.trim();
                 const byteValue = currentLine[2]?.trim() !== '' ? parseInt(currentLine[2].trim(), 10) : null;
                 const bitValue = currentLine[3]?.trim() !== '' ? parseInt(currentLine[3].trim(), 10) : null;
+
+                // Assign the name column value to dynamicKey (for the first valid entry)
+                if (i === 1 && name) {
+                    dynamicKey = name; // Set dynamic key from the first valid 'name' column
+                }
 
                 // If it's a new section (like "Mattenkonfiguration")
                 if (name && byteValue !== null) {
@@ -57,7 +63,10 @@
                 }
             }
 
-            return result; // Return the result object without "data"
+            //return result; // Return the result object without "data"
+            // Dynamically use the name value from the CSV as the key to wrap the result
+            const wrappedResult = { [dynamicKey]: result };
+            return wrappedResult;
         }
 
         function downloadJson(jsonData) {

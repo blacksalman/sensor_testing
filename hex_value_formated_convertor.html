@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual CSV to JSON Converter</title>
+</head>
+<body>
+
+    <h1>Manual Name and Value to JSON Converter</h1>
+
+    <!-- Input fields for manual name and value -->
+    <label for="name">Name:</label>
+    <input type="text" id="name" value="SHZ_Variantencodierung_Max_Read_Dump" /><br>
+
+    <label for="value">Value:</label>
+    <input type="text" id="value" value='"6F, 0F, 6F, DB, 2F, 41, 01, 0F, 00, 00"' /><br>
+
+    <button onclick="convertToJSON()">Convert to JSON and Download</button>
+
+    <h2>Generated JSON</h2>
+    <pre id="jsonOutput"></pre>
+
+    <script>
+        function convertToJSON() {
+            // Get the name and value from the input fields
+            const name = document.getElementById('name').value;
+            let value = document.getElementById('value').value;
+
+            // Clean up the value by removing the quotes
+            value = value.replace(/^"|"$/g, '');  // Remove surrounding quotes if present
+
+            // Split the value string by commas, and remove extra spaces around each value
+            const values = value.split(',').map(v => v.trim());
+
+            // Create the final JSON object
+            const result = {};
+            result[name] = {};
+
+            // Add the values to the JSON object with proper indexing
+            values.forEach((val, index) => {
+                result[name][index] = val;
+            });
+
+            // Convert the result object to a formatted JSON string
+            const jsonString = JSON.stringify(result, null, 4);
+
+            // Display the generated JSON on the page
+            document.getElementById('jsonOutput').textContent = jsonString;
+
+            // Trigger the download of the JSON file
+            downloadJSON(jsonString, 'converted_data.json');
+        }
+
+        // Function to trigger a download of the JSON file
+        function downloadJSON(jsonData, filename) {
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        }
+    </script>
+
+</body>
+</html>
